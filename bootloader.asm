@@ -1,13 +1,16 @@
-; Book - https://github.com/MaaSTaaR/539kernel
-; Interrupt reference - http://www.ctyme.com/intr/int.htm
-; Instruction reference - https://www.felixcloutier.com/x86/
-
 start:
     mov ax, 07C0h
     mov ds, ax
 
     mov si, bootloader_message
     call println
+
+    mov si, bootloader_size_message
+    call prints
+    mov ax, end
+    call printwd
+    mov si, end_of_line
+    call prints
 
     call load_kernel
     jmp 0900h:0000
@@ -40,11 +43,13 @@ on_kernel_load_error:
     jmp stop_execution
 
 bootloader_message: db "Minikernel bootloader is running...", 0
+bootloader_size_message: db "Bootloader size: ", 0
 kernel_loading_message: db "Loading the kernel from disk...", 0
 kernel_load_error_message: db "Failed to load the kernel from disk.", 0
-kernel_loaded_message: db "The .", 0
+kernel_loaded_message: db "The kernel is loaded from disk.", 0
 
 %include "lib.asm"
+end:
 
 ; Bootloader magic code
 times 510-($-$$) db 0
