@@ -135,4 +135,5 @@ stop_execution:
         jmp _stop_execution_loop
 
 stop_execution_message: db "Stopping the execution.", 0
+
 end_of_line: db `\r\n`, 0

@@ -12,41 +12,74 @@ start:
     mov si, end_of_line
     call prints
 
+    call get_kernel_start
     call load_kernel
-    jmp 0900h:0000
 
+    push es
+    mov ax, 0
+    push ax
+    retf
+
+bootloader_message: db "Minikernel bootloader is running...", 0
+bootloader_size_message: db "Bootloader size: ", 0
+
+; Calculates kernel load address and stores it in ES
+get_kernel_start:
+    push ax
+    push bx
+
+    mov ax, end
+    shr ax, 4
+
+    mov bx, end
+    and bx, 0Fh
+    cmp bx, 0
+    je _get_kernel_start_aligned
+
+    inc ax
+
+    _get_kernel_start_aligned:
+        mov bx, ds
+        add ax, bx
+        mov es, ax
+
+        pop bx
+        pop ax
+        ret
+
+; Loads kernel from disk to ES
 load_kernel:
+    push bx
+    push si
+
     mov si, kernel_loading_message
     call println
 
-    mov ax, 0900h
-    mov es, ax
-    mov bx, 0
-
     mov ah, 02h ; read sectors to es:bx
-    mov al, 1   ; count
+    mov dl, 80h ; hard disk
     mov ch, 0   ; track number
     mov cl, 2   ; sector number (starts from 1 which is bootloader)
     mov dh, 0   ; head number
-    mov dl, 80h ; hard disk
+    mov al, 1   ; count
+    mov bx, 0
     int 13h
-    jc on_kernel_load_error
+    jc _load_kernel_error
 
     mov si, kernel_loaded_message
     call println
 
+    pop si
+    pop bx
     ret
 
-on_kernel_load_error:
-    mov si, kernel_load_error_message
-    call println
-    jmp stop_execution
+    _load_kernel_error:
+        mov si, kernel_load_error_message
+        call println
+        jmp stop_execution
 
-bootloader_message: db "Minikernel bootloader is running...", 0
-bootloader_size_message: db "Bootloader size: ", 0
 kernel_loading_message: db "Loading the kernel from disk...", 0
-kernel_load_error_message: db "Failed to load the kernel from disk.", 0
 kernel_loaded_message: db "The kernel is loaded from disk.", 0
+kernel_load_error_message: db "Failed to load the kernel from disk.", 0
 
 %include "lib.asm"
 end:
