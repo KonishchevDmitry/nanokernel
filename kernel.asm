@@ -17,5 +17,6 @@ start:
 kernel_running_message: db "Minikernel is running...", 0
 kernel_size_message: db "Kernel size: ", 0
 
+%include "gdt.asm"
 %include "lib.asm"
 end:

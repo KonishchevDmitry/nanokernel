@@ -9,5 +9,10 @@ disk.img: bootloader.o kernel.o
 %.o: %.asm lib.asm
 	nasm -f bin $< -o $@
 
+kernel.o: gdt.asm
+
+gdt.asm:
+	./generate-gdt
+
 clean:
 	rm -f *.o disk.img
