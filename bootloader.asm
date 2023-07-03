@@ -7,14 +7,14 @@ start:
     mov ds, ax
 
     mov si, bootloader_message
-    call print_string
+    call println
 
     call load_kernel
     jmp 0900h:0000
 
 load_kernel:
     mov si, kernel_loading_message
-    call print_string
+    call println
 
     mov ax, 0900h
     mov es, ax
@@ -27,18 +27,22 @@ load_kernel:
     mov dh, 0   ; head number
     mov dl, 80h ; hard disk
     int 13h
-
     jc on_kernel_load_error
+
+    mov si, kernel_loaded_message
+    call println
+
     ret
 
 on_kernel_load_error:
     mov si, kernel_load_error_message
-    call print_string
+    call println
     jmp stop_execution
 
 bootloader_message: db "Minikernel bootloader is running...", 0
-kernel_loading_message: db "Loading the kernel...", 0
+kernel_loading_message: db "Loading the kernel from disk...", 0
 kernel_load_error_message: db "Failed to load the kernel from disk.", 0
+kernel_loaded_message: db "The .", 0
 
 %include "lib.asm"
 

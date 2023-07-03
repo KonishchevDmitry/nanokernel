@@ -1,29 +1,26 @@
-print_string:
+println:
+    call prints
+
+    mov si, end_of_line
+    call prints
+
+prints:
     lodsb
     cmp al, 0
-    je finish_printing
+    je return
 
     ; Print al
     mov ah, 0Eh
     mov bh, 0
     int 10h
 
-    jmp print_string
+    jmp prints
 
-finish_printing:
-    ; Get current cursor position -> dh:dl
-    mov ah, 03h
-    mov bh, 0
-    int 10h
-
-    ; Move cursor to the new line
-    mov ah, 02h
-    inc dh
-    mov dl, 0
-    int 10h
-
+return:
     ret
 
 stop_execution:
     hlt
     jmp stop_execution
+
+end_of_line: db `\r\n`, 0

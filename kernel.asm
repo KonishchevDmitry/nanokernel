@@ -2,11 +2,11 @@ start:
     mov ax, cs
     mov ds, ax
 
-    mov si, kernel_loaded_message
-    call print_string
+    mov si, kernel_running_message
+    call println
 
     jmp stop_execution
 
-kernel_loaded_message: db "The kernel is loaded.", 0
+kernel_running_message: db "Minikernel is running...", 0
 
 %include "lib.asm"
