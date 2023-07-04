@@ -128,13 +128,17 @@ printwd:
 
 ; Loads kernel from disk:
 ; * CL - start sector (starts from 1 which is bootloader)
-; * AL - number of sectors
+; * AL - number of sectors. If 128 is specified, reads all available sectors, but at least one.
 ; * ES - destination
 load_kernel:
     push ax
     push bx
     push cx
     push dx
+    push si
+
+    mov ah, 0
+    mov si, ax
 
     mov ah, 02h ; read sectors to es:bx
     mov dl, 80h ; hard disk
@@ -142,63 +146,59 @@ load_kernel:
     mov dh, 0   ; head number
     mov bx, 0
     int 13h
-    jc _load_kernel_error
+    jc _load_kernel_read_error
 
-    pop dx
-    pop cx
-    pop bx
-    pop ax
-    ret
-
-    _load_kernel_error:
-        mov si, kernel_load_error_message
-        call println
-        jmp stop_execution
-
-kernel_load_error_message: db "Failed to load the kernel from disk.", 0
-
-; Sleeps for the specified number of seconds (CX)
-; A very naive implementation which relies on the fact that we receive ~18.2 timer iterrupts per second
-sleep:
-    push ax
-    push cx
-    push dx
-
-    mov ax, 18
-    mul cx
-
-    _sleep_iteration:
-        cmp ax, 0
-        je _sleep_zero_ax
-
-        dec ax
-
-    _sleep:
-        hlt
-        jmp _sleep_iteration
-
-    _sleep_zero_ax:
-        cmp dx, 0
-        je _sleep_finish
-
-        dec dx
-        mov ax, 0xff
-        jmp _sleep
-
-    _sleep_finish:
+    _load_kernel_success:
+        pop si
         pop dx
         pop cx
+        pop bx
         pop ax
         ret
 
+    _load_kernel_read_error:
+        mov bx, ax
+
+        cmp si, 128 ; our magic number to read all available sectors
+        jne _load_kernel_error
+
+        cmp bh, 0x0C ; invalid sector
+        jne _load_kernel_error
+
+        cmp bl, 0 ; zero sectors have been read
+        je _load_kernel_error
+
+        mov ah, 0
+        mov al, bl
+        call printwd
+        mov si, _kernel_sectors_read_message
+        call println
+
+        jmp _load_kernel_success
+
+    _load_kernel_error:
+        mov si, _kernel_load_error_message
+        call prints
+
+        mov al, bh
+        call printb
+
+        mov si, end_of_line
+        call prints
+
+        jmp stop_execution
+
+_kernel_load_error_message: db "Failed to load the kernel from disk: ", 0
+_kernel_sectors_read_message: db " sectors have been read.", 0
+
 stop_execution:
-    mov si, stop_execution_message
+    mov si, _stop_execution_message
     call println
 
     _stop_execution_loop:
         hlt
         jmp _stop_execution_loop
 
-stop_execution_message: db "Stopping the execution.", 0
+_stop_execution_message: db "Stopping the execution.", 0
 
 end_of_line: db `\r\n`, 0

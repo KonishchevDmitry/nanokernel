@@ -33,7 +33,7 @@ bootloader_message: db "Minikernel bootloader is running...", 0
 bootloader_size_message: db "Bootloader size: ", 0
 
 kernel_loading_message: db "Loading nanokernel from disk...", 0
-kernel_loaded_message: db "Nanokernel is loaded from disk.", 0
+kernel_loaded_message: db "Nanokernel is loaded.", 0
 
 ; Calculates kernel load address and stores it in ES
 get_kernel_start:
@@ -59,9 +59,9 @@ get_kernel_start:
         pop ax
         ret
 
-%include "lib.asm"
+%include "libcore.asm"
 end:
 
-; Bootloader magic code
+; Bootloader magic code + to get a compile error if we suddenly exceed the 512 bytes in size
 times 510-($-$$) db 0
 dw 0xAA55

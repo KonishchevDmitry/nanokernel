@@ -64,7 +64,8 @@ init_video_mode:
 
 switch_video_mode_message: db "Switching video mode...", 0
 
-%include "lib.asm"
+%include "libcore.asm"
+%include "libmisc.asm"
 
 bits 32
 

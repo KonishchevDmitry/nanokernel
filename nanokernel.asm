@@ -22,8 +22,8 @@ start:
     mov ax, 800h ; 0x7c00 + 512 + 512 = 0x8000
     mov es, ax
 
-    mov cl, 3 ; start sector
-    mov al, 2 ; count
+    mov cl, 3   ; start sector
+    mov al, 128 ; read all available
     call load_kernel
 
     mov si, kernel_loaded_message
@@ -38,7 +38,10 @@ kernel_running_message: db "Nanokernel is running...", 0
 kernel_size_message: db "Kernel size: ", 0
 
 kernel_loading_message: db "Loading minikernel from disk...", 0
-kernel_loaded_message: db "Minikernel is loaded from disk.", 0
+kernel_loaded_message: db "Minikernel is loaded.", 0
 
-%include "lib.asm"
+%include "libcore.asm"
 end:
+
+; To get a compile error if we suddenly exceed the 512 bytes in size
+times 512-($-$$) db 0
