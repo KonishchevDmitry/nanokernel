@@ -6,5 +6,6 @@ void kernel_main() {
     video[2] = 'K';
     video[3] = 15;
 
-	while(1);
+	while(1)
+        ;
 }

@@ -140,7 +140,6 @@ load_kernel:
     mov dl, 80h ; hard disk
     mov ch, 0   ; track number
     mov dh, 0   ; head number
-    mov al, 1   ; count
     mov bx, 0
     int 13h
     jc _load_kernel_error
@@ -157,6 +156,40 @@ load_kernel:
         jmp stop_execution
 
 kernel_load_error_message: db "Failed to load the kernel from disk.", 0
+
+; Sleeps for the specified number of seconds (CX)
+; A very naive implementation which relies on the fact that we receive ~18.2 timer iterrupts per second
+sleep:
+    push ax
+    push cx
+    push dx
+
+    mov ax, 18
+    mul cx
+
+    _sleep_iteration:
+        cmp ax, 0
+        je _sleep_zero_ax
+
+        dec ax
+
+    _sleep:
+        hlt
+        jmp _sleep_iteration
+
+    _sleep_zero_ax:
+        cmp dx, 0
+        je _sleep_finish
+
+        dec dx
+        mov ax, 0xff
+        jmp _sleep
+
+    _sleep_finish:
+        pop dx
+        pop cx
+        pop ax
+        ret
 
 stop_execution:
     mov si, stop_execution_message

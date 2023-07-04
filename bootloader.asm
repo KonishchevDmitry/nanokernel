@@ -7,7 +7,7 @@ start:
 
     mov si, bootloader_size_message
     call prints
-    mov ax, (end - start)
+    mov ax, end - start
     call printwd
     mov si, end_of_line
     call prints

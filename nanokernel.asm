@@ -10,7 +10,7 @@ start:
 
     mov si, kernel_size_message
     call prints
-    mov ax, (end - start)
+    mov ax, end - start
     call printwd
     mov si, end_of_line
     call prints
@@ -23,7 +23,7 @@ start:
     mov es, ax
 
     mov cl, 3 ; start sector
-    mov al, 1 ; count
+    mov al, 2 ; count
     call load_kernel
 
     mov si, kernel_loaded_message
