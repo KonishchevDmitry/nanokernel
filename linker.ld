@@ -1,18 +1,18 @@
 /* A brief explanation of the format - https://allthingsembedded.com/post/2020-04-11-mastering-the-gnu-linker-script/ */
 
 SECTIONS {
-    .text 0x09000: {
+    .text 0x8000 : {
         code = .; _code = .; __code = .;
         *(.text)
     }
 
-    .data: {
+    .data : {
         data = .; _data = .; __data = .;
         *(.data)
         *(.rodata)
     }
 
-    .bss: {
+    .bss : {
         bss = .; _bss = .; __bss = .;
         *(.bss)
     }

@@ -56,17 +56,17 @@ printw:
 printb:
     push ax
         shr al, 4
-        call print_half_of_byte
+        call _print_half_of_byte
     pop ax
 
     push ax
         and al, 0Fh
-        call print_half_of_byte
+        call _print_half_of_byte
     pop ax
 
     ret
 
-print_half_of_byte:
+_print_half_of_byte:
     push ax
 
     cmp al, 10
@@ -125,6 +125,38 @@ printwd:
         pop bx
         pop ax
         ret
+
+; Loads kernel from disk:
+; * CL - start sector (starts from 1 which is bootloader)
+; * AL - number of sectors
+; * ES - destination
+load_kernel:
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov ah, 02h ; read sectors to es:bx
+    mov dl, 80h ; hard disk
+    mov ch, 0   ; track number
+    mov dh, 0   ; head number
+    mov al, 1   ; count
+    mov bx, 0
+    int 13h
+    jc _load_kernel_error
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+    _load_kernel_error:
+        mov si, kernel_load_error_message
+        call println
+        jmp stop_execution
+
+kernel_load_error_message: db "Failed to load the kernel from disk.", 0
 
 stop_execution:
     mov si, stop_execution_message
