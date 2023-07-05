@@ -1,10 +1,6 @@
 ; Sleeps for the specified number of seconds (CX)
 ; A very naive implementation which relies on the fact that we receive ~18.2 timer iterrupts per second
 sleep:
-    push ax
-    push cx
-    push dx
-
     mov ax, 18
     mul cx
 
@@ -27,7 +23,4 @@ sleep:
         jmp _sleep
 
     _sleep_finish:
-        pop dx
-        pop cx
-        pop ax
         ret

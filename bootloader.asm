@@ -37,26 +37,20 @@ kernel_loaded_message: db "Nanokernel is loaded.", 0
 
 ; Calculates kernel load address and stores it in ES
 get_kernel_start:
-    push ax
-    push bx
-
     mov ax, end
     shr ax, 4
 
-    mov bx, end
-    and bx, 0Fh
-    cmp bx, 0
+    mov cx, end
+    and cx, 0Fh
+    cmp cx, 0
     je _get_kernel_start_aligned
 
     inc ax
 
     _get_kernel_start_aligned:
-        mov bx, ds
-        add ax, bx
+        mov cx, ds
+        add ax, cx
         mov es, ax
-
-        pop bx
-        pop ax
         ret
 
 %include "libcore.asm"

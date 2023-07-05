@@ -1,6 +1,7 @@
 ; Book - https://github.com/MaaSTaaR/539kernel
 ; Interrupt reference - http://www.ctyme.com/intr/int.htm
 ; Instruction reference - https://www.felixcloutier.com/x86/
+; C calling convention - https://en.wikipedia.org/wiki/X86_calling_conventions#cdecl
 
 ; Prints string in SI with line ending
 println:
@@ -15,7 +16,7 @@ println:
 
 ; Prints string in SI
 prints:
-    push ax
+    push si
 
     _prints_loop:
         lodsb
@@ -26,12 +27,11 @@ prints:
         jmp _prints_loop
 
     _prints_ret:
-        pop ax
+        pop si
         ret
 
 ; Prints character in AL
 printc:
-    push ax
     push bx
 
     mov ah, 0Eh
@@ -39,36 +39,38 @@ printc:
     int 10h
 
     pop bx
-    pop ax
     ret
 
 ; Prints AX
 printw:
-    push ax
-        mov al, ah
-        call printb
-    pop ax
+    push bx
+    mov bl, al
 
+    mov al, ah
     call printb
+
+    mov al, bl
+    call printb
+
+    pop bx
     ret
 
 ; Prints AL
 printb:
-    push ax
-        shr al, 4
-        call _print_half_of_byte
-    pop ax
+    push bx
+    mov bl, al
 
-    push ax
-        and al, 0Fh
-        call _print_half_of_byte
-    pop ax
+    shr al, 4
+    call _print_half_of_byte
 
+    mov al, bl
+    and al, 0xF
+    call _print_half_of_byte
+
+    pop bx
     ret
 
 _print_half_of_byte:
-    push ax
-
     cmp al, 10
     jb _format_half_of_byte
     add al, 7
@@ -76,16 +78,11 @@ _print_half_of_byte:
     _format_half_of_byte:
         add al, '0'
         call printc
-
-        pop ax
         ret
 
 ; Prints AX in decimal
 printwd:
-    push ax
     push bx
-    push cx
-    push dx
 
     mov cx, 0
 
@@ -120,10 +117,7 @@ printwd:
         jmp _printwd_forward_loop
 
     _printwd_ret:
-        pop dx
-        pop cx
         pop bx
-        pop ax
         ret
 
 ; Loads kernel from disk:
@@ -131,10 +125,7 @@ printwd:
 ; * AL - number of sectors. If 128 is specified, reads all available sectors, but at least one.
 ; * ES - destination
 load_kernel:
-    push ax
     push bx
-    push cx
-    push dx
     push si
 
     mov ah, 0
@@ -150,10 +141,7 @@ load_kernel:
 
     _load_kernel_success:
         pop si
-        pop dx
-        pop cx
         pop bx
-        pop ax
         ret
 
     _load_kernel_read_error:

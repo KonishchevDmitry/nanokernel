@@ -35,7 +35,7 @@ start:
     retf
 
 kernel_running_message: db "Nanokernel is running...", 0
-kernel_size_message: db "Kernel size: ", 0
+kernel_size_message: db "Nanokernel size: ", 0
 
 kernel_loading_message: db "Loading minikernel from disk...", 0
 kernel_loaded_message: db "Minikernel is loaded.", 0
