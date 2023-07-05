@@ -5,17 +5,17 @@ start:
     mov ax, cs
     mov ds, ax
 
-    mov si, kernel_running_message
+    mov si, _kernel_running_message
     call println
 
-    mov si, kernel_size_message
+    mov si, _kernel_size_message
     call prints
     mov ax, end - start
     call printwd
     mov si, end_of_line
     call prints
 
-    mov si, kernel_loading_message
+    mov si, _kernel_loading_message
     call println
 
     ; Load address
@@ -26,7 +26,7 @@ start:
     mov al, 128 ; read all available
     call load_kernel
 
-    mov si, kernel_loaded_message
+    mov si, _kernel_loaded_message
     call println
 
     push es
@@ -34,11 +34,11 @@ start:
     push ax
     retf
 
-kernel_running_message: db "Nanokernel is running...", 0
-kernel_size_message: db "Nanokernel size: ", 0
+    _kernel_running_message: db "Nanokernel is running...", 0
+    _kernel_size_message: db "Nanokernel size: ", 0
 
-kernel_loading_message: db "Loading minikernel from disk...", 0
-kernel_loaded_message: db "Minikernel is loaded.", 0
+    _kernel_loading_message: db "Loading minikernel from disk...", 0
+    _kernel_loaded_message: db "Minikernel is loaded.", 0
 
 %include "libcore.asm"
 end:

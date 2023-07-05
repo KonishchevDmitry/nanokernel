@@ -2,10 +2,10 @@ start:
     mov ax, 07C0h
     mov ds, ax
 
-    mov si, bootloader_message
+    mov si, _bootloader_message
     call println
 
-    mov si, bootloader_size_message
+    mov si, _bootloader_size_message
     call prints
     mov ax, end - start
     call printwd
@@ -14,14 +14,14 @@ start:
 
     call get_kernel_start
 
-    mov si, kernel_loading_message
+    mov si, _kernel_loading_message
     call println
 
     mov cl, 2 ; start sector
     mov al, 1 ; count
     call load_kernel
 
-    mov si, kernel_loaded_message
+    mov si, _kernel_loaded_message
     call println
 
     push es
@@ -29,11 +29,11 @@ start:
     push ax
     retf
 
-bootloader_message: db "Minikernel bootloader is running...", 0
-bootloader_size_message: db "Bootloader size: ", 0
+    _bootloader_message: db "Minikernel bootloader is running...", 0
+    _bootloader_size_message: db "Bootloader size: ", 0
 
-kernel_loading_message: db "Loading nanokernel from disk...", 0
-kernel_loaded_message: db "Nanokernel is loaded.", 0
+    _kernel_loading_message: db "Loading nanokernel from disk...", 0
+    _kernel_loaded_message: db "Nanokernel is loaded.", 0
 
 ; Calculates kernel load address and stores it in ES
 get_kernel_start:

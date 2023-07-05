@@ -176,8 +176,8 @@ load_kernel:
 
         jmp stop_execution
 
-_kernel_load_error_message: db "Failed to load the kernel from disk: ", 0
-_kernel_sectors_read_message: db " sectors have been read.", 0
+    _kernel_load_error_message: db "Failed to load the kernel from disk: ", 0
+    _kernel_sectors_read_message: db " sectors have been read.", 0
 
 stop_execution:
     mov si, _stop_execution_message
@@ -187,6 +187,6 @@ stop_execution:
         hlt
         jmp _stop_execution_loop
 
-_stop_execution_message: db "Stopping the execution.", 0
+    _stop_execution_message: db "Stopping the execution.", 0
 
 end_of_line: db `\r\n`, 0
