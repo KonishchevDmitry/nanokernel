@@ -20,7 +20,7 @@ minikernel.bin: minikernel.elf
 minikernel.elf: linker.ld bootstrap.o main.o lib.o
 	ld -m elf_i386 -T linker.ld bootstrap.o main.o lib.o -o $@
 
-bootstrap.o: bootstrap.asm gdt.asm libcore.asm libmisc.asm
+bootstrap.o: bootstrap.asm gdt.asm idt.asm libcore.asm libmisc.asm
 	nasm -f elf32 $< -o $@
 
 %.o: %.c lib.h
@@ -28,6 +28,9 @@ bootstrap.o: bootstrap.asm gdt.asm libcore.asm libmisc.asm
 
 gdt.asm: generate-gdt
 	./generate-gdt
+
+idt.asm: generate-idt
+	./generate-idt
 
 clean:
 	rm -f *.bin *.o *.elf *.img

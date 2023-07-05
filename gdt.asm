@@ -8,5 +8,5 @@ gdt:
     user_data_gdte: dw 0xffff, 0x0000, 0xf200, 0x00cf
 
 gdtr:
-    gdt_size: dw (gdtr - gdt)
+    gdt_size: dw gdtr - gdt
     gdt_base: dd gdt

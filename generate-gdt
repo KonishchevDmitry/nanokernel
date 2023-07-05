@@ -36,7 +36,7 @@ class GdtEntry:
             self.bits64         << 1
         )
 
-        data = ", ".join("0x{:04x}".format(gdt_byte) for gdt_byte in [
+        data = ", ".join("0x{:04x}".format(gdt_word) for gdt_word in [
             self.limit & 0xFFFF,
             self.base & 0xFFFF,
             access << 8 | (self.base >> 16 & 0xFF),
@@ -70,7 +70,7 @@ gdt:
     {entries}
 
 gdtr:
-    gdt_size: dw (gdtr - gdt)
+    gdt_size: dw gdtr - gdt
     gdt_base: dd gdt
 """
 
