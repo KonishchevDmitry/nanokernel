@@ -49,11 +49,6 @@ static void prints(const char* s) {
     }
 }
 
-static void println(const char* s) {
-    prints(s);
-    printc('\n');
-}
-
 static void printi(int value) {
     if(value < 0) {
         printc('-');
@@ -128,6 +123,8 @@ void printlnf(const char* s, ...) {
 }
 
 void stop_execution() {
+    printlnf("Stopping the execution.");
+
     while(1) {
         asm("hlt");
     }

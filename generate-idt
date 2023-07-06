@@ -16,6 +16,9 @@ idtr:
     idt_size: dw idtr - idt
     idt_base: dd idt
 
+master_pic_start: db {master_pic_start}
+slave_pic_start: db {slave_pic_start}
+
 {handlers}
 """
 
@@ -23,11 +26,23 @@ HANDLER_TEMPLATE = """\
 {isr_name}:
     cli
     push {irq}
-    jmp {handler_name}\
+    jmp isr\
 """
 
 
 def generate(path):
+    cpu_interrupts = 20
+    reserved_interrupts = 12
+    pic_interrupts = 8
+
+    total_interrupts = cpu_interrupts + reserved_interrupts
+
+    master_pic_start = total_interrupts
+    total_interrupts += pic_interrupts
+
+    slave_pic_start = total_interrupts
+    total_interrupts += pic_interrupts
+
     present = True
     dpl = 0
     gate_type = 0xE
@@ -41,19 +56,20 @@ def generate(path):
     entries = []
     handlers = []
 
-    for irq in range(49):
+    for irq in range(total_interrupts):
         isr_name = "isr_{}".format(irq)
 
         entries.append(
             "dw {isr_name}, kernel_code_gdte - gdt, 0x{third_word:04x}, 0x0000".format(
             isr_name=isr_name, third_word=flags << 8))
 
-        handler_name = "{}_interrupt_handler".format("cpu" if irq < 32 else "device")
-        handlers.append(HANDLER_TEMPLATE.format(isr_name=isr_name, irq=irq, handler_name=handler_name))
+        handlers.append(HANDLER_TEMPLATE.format(isr_name=isr_name, irq=irq))
 
     data = TEMPLATE.format(
         generator=os.path.basename(__file__),
         entries="\n    ".join(entries),
+        master_pic_start=master_pic_start,
+        slave_pic_start=slave_pic_start,
         handlers="\n\n".join(handlers),
     )
 

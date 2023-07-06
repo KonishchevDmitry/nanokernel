@@ -4,10 +4,10 @@ start:
     mov ax, 0
     mov ds, ax
 
-    mov si, bootstrap_running_message
+    mov si, _bootstrap_running_message
     call println
 
-    mov si, bootstrap_size_message
+    mov si, _bootstrap_size_message
     call prints
     mov ax, end - start
     call printwd
@@ -26,6 +26,10 @@ start:
         or eax, 1
         mov cr0, eax
 
+        ; Configure interrupts
+        call remap_pic
+        lidt [idtr]
+
         ; Switch to 32 bit code segment
         mov ax, kernel_code_gdte - gdt
         push ax
@@ -33,15 +37,13 @@ start:
         push ax
         retf
 
-bootstrap_running_message: db "Minikernel bootstrap is running...", 0
-bootstrap_size_message: db "Bootstrap code size: ", 0
+    _bootstrap_running_message: db "Minikernel bootstrap is running...", 0
+    _bootstrap_size_message: db "Bootstrap code size: ", 0
 
 init_video_mode:
-    push ax
-    push cx
     push si
 
-    mov si, switch_video_mode_message
+    mov si, _switch_video_mode_message
     call println
 
     mov cx, 1
@@ -58,11 +60,36 @@ init_video_mode:
     int 10h
 
     pop si
-    pop cx
-    pop ax
     ret
 
-switch_video_mode_message: db "Switching video mode...", 0
+    _switch_video_mode_message: db "Switching video mode...", 0
+
+remap_pic:
+    mov al, 11h
+    out 0x20, al ; master: init cmd
+    out 0xa0, al ; slave:  init cmd
+
+    mov al, [master_pic_start]
+    out 0x21, al ; master: where to start from
+
+    mov al, [slave_pic_start]
+    out 0xa1, al ; slave: where to start from
+
+    mov al, 04h
+    out 0x21, al ; master: where slave is connected
+
+    mov al, 02h
+    out 0xa1, al ; slave: where master is connected
+
+    mov al, 01h
+    out 0x21, al ; master: x86 mode
+    out 0xa1, al ; slave:  x86 mode
+
+    mov al, 0h
+    out 0x21, al ; master: enable all IRQ
+    out 0xa1, al ; slave:  enable all IRQ
+
+    ret
 
 %include "libcore.asm"
 %include "libmisc.asm"
@@ -81,12 +108,46 @@ start_kernel:
         mov fs, eax
         mov gs, eax
 
-    ; FIXME(konishchev)
-    ;sti
+    sti
 
     call kernel_main
+    extern kernel_main
 
-extern kernel_main
+isr:
+    push eax
+    push ecx
+    push edx
+
+    mov ecx, [esp + 12]
+    push ecx
+
+    call interrupt_handler
+    pop ecx
+
+    cmp cl, [master_pic_start]
+	jnge _isr_finish
+
+	mov al, 0x20
+	out 0x20, al ; ACK IRQ on master
+
+    cmp cl, [slave_pic_start]
+	jnge _isr_finish
+
+	mov al, 0xa0
+	out 0x20, al ; ACK IRQ on slave
+
+    _isr_finish:
+        pop edx
+        pop ecx
+        pop eax
+        add esp, 4
+
+        sti
+        iret
+
+    extern interrupt_handler
 
 %include "gdt.asm"
+%include "idt.asm"
+
 end:

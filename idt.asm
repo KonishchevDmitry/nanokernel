@@ -49,253 +49,250 @@ idt:
     dw isr_45, kernel_code_gdte - gdt, 0x8e00, 0x0000
     dw isr_46, kernel_code_gdte - gdt, 0x8e00, 0x0000
     dw isr_47, kernel_code_gdte - gdt, 0x8e00, 0x0000
-    dw isr_48, kernel_code_gdte - gdt, 0x8e00, 0x0000
 
 idtr:
     idt_size: dw idtr - idt
     idt_base: dd idt
 
+master_pic_start: db 32
+slave_pic_start: db 40
+
 isr_0:
     cli
     push 0
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_1:
     cli
     push 1
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_2:
     cli
     push 2
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_3:
     cli
     push 3
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_4:
     cli
     push 4
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_5:
     cli
     push 5
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_6:
     cli
     push 6
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_7:
     cli
     push 7
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_8:
     cli
     push 8
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_9:
     cli
     push 9
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_10:
     cli
     push 10
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_11:
     cli
     push 11
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_12:
     cli
     push 12
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_13:
     cli
     push 13
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_14:
     cli
     push 14
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_15:
     cli
     push 15
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_16:
     cli
     push 16
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_17:
     cli
     push 17
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_18:
     cli
     push 18
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_19:
     cli
     push 19
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_20:
     cli
     push 20
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_21:
     cli
     push 21
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_22:
     cli
     push 22
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_23:
     cli
     push 23
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_24:
     cli
     push 24
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_25:
     cli
     push 25
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_26:
     cli
     push 26
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_27:
     cli
     push 27
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_28:
     cli
     push 28
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_29:
     cli
     push 29
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_30:
     cli
     push 30
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_31:
     cli
     push 31
-    jmp cpu_interrupt_handler
+    jmp isr
 
 isr_32:
     cli
     push 32
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_33:
     cli
     push 33
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_34:
     cli
     push 34
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_35:
     cli
     push 35
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_36:
     cli
     push 36
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_37:
     cli
     push 37
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_38:
     cli
     push 38
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_39:
     cli
     push 39
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_40:
     cli
     push 40
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_41:
     cli
     push 41
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_42:
     cli
     push 42
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_43:
     cli
     push 43
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_44:
     cli
     push 44
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_45:
     cli
     push 45
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_46:
     cli
     push 46
-    jmp device_interrupt_handler
+    jmp isr
 
 isr_47:
     cli
     push 47
-    jmp device_interrupt_handler
-
-isr_48:
-    cli
-    push 48
-    jmp device_interrupt_handler
+    jmp isr
