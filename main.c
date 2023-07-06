@@ -1,21 +1,11 @@
 #include "lib.h"
 
-static void on_timer_interrupt() {
-    const int frequency = 18;
-    const int watchdog_period = 5;
-
-    static unsigned long interrupts;
-    interrupts++;
-
-    if(interrupts % frequency == 0 && interrupts / frequency % watchdog_period == 0) {
-        printlnf("We're still alive.");
-    }
-}
+static volatile unsigned long TIMER_INTERRUPTS;
 
 void interrupt_handler(int irq) {
     switch(irq) {
         case 32:
-            on_timer_interrupt();
+            TIMER_INTERRUPTS++;
             break;
 
         default:
@@ -26,5 +16,19 @@ void interrupt_handler(int irq) {
 
 void kernel_main() {
     printlnf("Minikernel is running...");
-    stop_execution();
+
+    const int approximate_timer_frequency = 18;
+    const int watchdog_period = 5;
+    unsigned long last_watchdog_uptime = 0;
+
+    while(1) {
+        unsigned long uptime = TIMER_INTERRUPTS / approximate_timer_frequency;
+
+        if(uptime - last_watchdog_uptime >= watchdog_period) {
+            printlnf("We're still alive (~%ds uptime).", uptime);
+            last_watchdog_uptime = uptime;
+        }
+
+        asm("hlt");
+    }
 }
