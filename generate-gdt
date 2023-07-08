@@ -7,13 +7,13 @@
 import os
 
 class GdtEntry:
-    def __init__(self, name, base, limit, *, system, privilege_level):
+    def __init__(self, name, base, limit, *, system, privilege_level, granularity_4k):
         self.name = name
         self.base = base
         self.limit = limit
         self.system = system
         self.privilege_level = privilege_level
-        self.granularity_4k = True
+        self.granularity_4k = granularity_4k
         self.bits32 = True
         self.bits64 = False
         self.present = True
@@ -21,13 +21,10 @@ class GdtEntry:
 
     def encode(self):
         access = (
-            self.present               << 7 |
-            self.privilege_level       << 5 |
-            (not self.system)          << 4 |
-            self.executable            << 3 |
-            self.conforming_grows_down << 2 |
-            self.readable_writable     << 1 |
-            self.accessed              << 0
+            self.present         << 7 |
+            self.privilege_level << 5 |
+            (not self.system)    << 4 |
+            self._type()
         )
 
         flags = (
@@ -36,30 +33,54 @@ class GdtEntry:
             self.bits64         << 1
         )
 
-        data = ", ".join("0x{:04x}".format(gdt_word) for gdt_word in [
-            self.limit & 0xFFFF,
-            self.base & 0xFFFF,
-            access << 8 | (self.base >> 16 & 0xFF),
-            (self.base >> 24 & 0xFF) << 8 | flags << 4 | (self.limit >> 16 & 0xF),
-        ])
+        data = ", ".join(
+            gdt_word if isinstance(gdt_word, str) else "0x{:04x}".format(gdt_word)
+            for gdt_word in (
+                self.limit if isinstance(self.limit, str) else self.limit & 0xFFFF,
+                self.base if isinstance(self.base, str) else self.base & 0xFFFF,
+                access << 8 | (0 if isinstance(self.base, str) else self.base >> 16 & 0xFF),
+                (0 if isinstance(self.base, str) else self.base >> 24 & 0xFF) << 8 | flags << 4 | (0 if isinstance(self.limit, str) else self.limit >> 16 & 0xF),
+            )
+        )
 
         return "{name}_gdte: dw {data}".format(name=self.name, data=data)
 
 
 class GdtCodeEntry(GdtEntry):
     def __init__(self, name, base, limit, *, conforming, readable, **kwargs):
-        super().__init__(name, base, limit, **kwargs)
-        self.executable = True
-        self.conforming_grows_down = conforming
-        self.readable_writable = readable
+        super().__init__(name, base, limit, system=False, granularity_4k=True, **kwargs)
+        self.__conforming = conforming
+        self.__readable = readable
+
+    def _type(self):
+        return (
+            True              << 3 |
+            self.__conforming << 2 |
+            self.__readable   << 1 |
+            self.accessed     << 0
+        )
 
 
 class GdtDataEntry(GdtEntry):
     def __init__(self, name, base, limit, *, writable, **kwargs):
-        super().__init__(name, base, limit, **kwargs)
-        self.executable = False
-        self.conforming_grows_down = False
-        self.readable_writable = writable
+        super().__init__(name, base, limit, system=False, granularity_4k=True, **kwargs)
+        self.__grows_down = False
+        self.__writable = writable
+
+    def _type(self):
+        return (
+            False             << 3 |
+            self.__grows_down << 2 |
+            self.__writable   << 1 |
+            self.accessed     << 0
+        )
+
+class GdtSystemEntry(GdtEntry):
+    def __init__(self, name, base, limit):
+        super().__init__(name, base, limit, system=True, privilege_level=0, granularity_4k=False)
+
+    def _type(self):
+        return 0x9
 
 
 TEMPLATE = """\
@@ -76,10 +97,12 @@ gdtr:
 
 def generate(path):
     encoded_entries = [entry.encode() for entry in [
-        GdtCodeEntry("kernel_code", 0, 0xFFFFF, system=False, readable=True, conforming=False, privilege_level=0),
-        GdtDataEntry("kernel_data", 0, 0xFFFFF, system=False, writable=True, privilege_level=0),
-        GdtCodeEntry("user_code",   0, 0xFFFFF, system=False, readable=True, conforming=False, privilege_level=3),
-        GdtDataEntry("user_data",   0, 0xFFFFF, system=False, writable=True, privilege_level=3),
+        GdtCodeEntry("kernel_code", 0, 0xFFFFF, readable=True, conforming=False, privilege_level=0),
+        GdtDataEntry("kernel_data", 0, 0xFFFFF, writable=True, privilege_level=0),
+        GdtCodeEntry("user_code",   0, 0xFFFFF, readable=True, conforming=False, privilege_level=3),
+        GdtDataEntry("user_data",   0, 0xFFFFF, writable=True, privilege_level=3),
+
+        GdtSystemEntry("tss", "tss", "tss_end - tss"),
     ]]
 
     data = TEMPLATE.format(

@@ -14,6 +14,12 @@ start:
     mov si, end_of_line
     call prints
 
+    ; Just in case: ensure that our generated GDT entries are valid (we can't split label value into several bytes in it)
+    mov eax, tss
+    shr eax, 16
+    cmp eax, 0
+    jne _unexpected_tss
+
     ; BIOS is not available in protected mode, so we initialize VGA to be able to print something
     call init_video_mode
 
@@ -30,6 +36,10 @@ start:
         call remap_pic
         lidt [idtr]
 
+        ; Configure TSS
+        mov ax, tss_gdte - gdt
+        ltr ax
+
         ; Switch to 32 bit code segment
         mov ax, kernel_code_gdte - gdt
         push ax
@@ -37,8 +47,14 @@ start:
         push ax
         retf
 
+    _unexpected_tss:
+        mov si, _unexpected_tss_message
+        call println
+        jmp stop_execution
+
     _bootstrap_running_message: db "Minikernel bootstrap is running...", 0
     _bootstrap_size_message: db "Bootstrap code size: ", 0
+    _unexpected_tss_message: db "TSS segment has an unexpected address.", 0
 
 init_video_mode:
     push si
@@ -149,5 +165,10 @@ isr:
 
 %include "gdt.asm"
 %include "idt.asm"
+
+; https://wiki.osdev.org/Task_State_Segment
+tss:
+    times 108 db 0
+tss_end:
 
 end:
